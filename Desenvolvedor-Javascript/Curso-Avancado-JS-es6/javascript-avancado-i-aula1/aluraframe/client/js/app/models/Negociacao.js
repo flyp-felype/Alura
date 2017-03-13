@@ -24,4 +24,9 @@ class Negociacao{
     get valor(){
         return this._valor;
     }
+
+    esvazia()
+    {
+        this._negociacoes = [];
+    }
 }
