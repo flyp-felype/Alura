@@ -1,80 +1,66 @@
 class NegociacaoController {
-
-    constructor(){
+    
+    constructor() {
         
         let $ = document.querySelector.bind(document);
-
-        this._inputData = $("#data");
-        this._inputQuantidade = $("#quantidade");
-        this._inputValor = $("#valor");
-
-        /*
-        this._listaNegociacaoes = 
-                new ListaNegociacaoes(model => this._NegociacaoView.update(model) );
-        */
         
-        this._NegociacaoView = new NegociacaoView( $("#NegociacoesView"));        
-
-        let self = this;
-
-        this._listaNegociacaoes = ProxyFactory.create(
-            new ListaNegociacaoes(), 
-            ['adiciona', 'esvazia'], (model) => 
-             this._NegociacaoView.update(model)
-        );
-        this._mensagem = new Mensagem();
-        this._mensagemView = new MensagemView($('#mensagemview'));
-        this._mensagemView.update(this._mensagem);
-        
-    }
-
-    adiciona(event)
-    {
-        event.preventDefault();       
-
-        this._listaNegociacaoes.adiciona(this._criaNegociacao());
-        this._limpaFormulario();
-        this._mensagem.texto = 'Negociação Cadastrada com Sucesso';
-        this._mensagemView.update(this._mensagem);
-
-        //console.log(this._listaNegociacaoes.negociaoes);
-    }
-
-    apaga(){
-        
-        this._listaNegociacaoes.esvazia();
-
-
-        this._mensagem.texto = 'Negociações apagadas com sucesso!';
-        this._mensagemView.update(this._mensagem)
-    }
-
-
-    _criaNegociacao() {
-
-         return new Negociacao(
-             DateHelper.textoParaData(this._inputData.value),
-             this._inputQuantidade.value,
-             this._inputValor.value
-         );
+        this._inputData = $('#data');
+        this._inputQuantidade = $('#quantidade');
+        this._inputValor = $('#valor');
          
+        this._listaNegociacoes = new Bind(
+            new ListaNegociacoes(), 
+            new NegociacoesView($('#negociacoesView')), 
+            'adiciona', 'esvazia');
+       
+        this._mensagem = new Bind(
+            new Mensagem(), new MensagemView($('#mensagemView')),
+            'texto');       
+    }
+    
+    adiciona(event) {
+        
+        event.preventDefault();
+        this._listaNegociacoes.adiciona(this._criaNegociacao());
+        this._mensagem.texto = 'Negociação adicionada com sucesso'; 
+        this._limpaFormulario();   
     }
 
-    apaga(){
+    iportaNegociacoes(){
 
-        this._listaNegociacaoes.esvazia();
+       let service = new NegociacaoService();
 
-        this._mensagem.texto = 'Negociações apagadas com sucesso!';
-        this._mensagemView.update(this._mensagem);
+       service.obterNegociacoesDaSemana( (err, negociacoes) => {
+           
+           if(err){
+               this._mensagem.texto = err;
+               return;
+           }
+
+           negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
+           this._mensagem.texto = 'Negociações importadas com sucesso';
+       });
     }
-
-    _limpaFormulario(){
-
+    
+    apaga() {
+        
+        this._listaNegociacoes.esvazia();
+        this._mensagem.texto = 'Negociações apagadas com sucesso';
+    }
+    
+    _criaNegociacao() {
+        
+        return new Negociacao(
+            DateHelper.textoParaData(this._inputData.value),
+            this._inputQuantidade.value,
+            this._inputValor.value);    
+    }
+    
+    _limpaFormulario() {
+     
         this._inputData.value = '';
         this._inputQuantidade.value = 1;
         this._inputValor.value = 0.0;
-
-        this._inputData.focus();
-
+        this._inputData.focus();   
     }
 }
